@@ -1,3 +1,9 @@
+## 🎥 Live Demo
+
+Check out the live version of this UI clone here:  
+[Live Demo – Zerodha-style Web App](https://zerodhawebappbymahipal.netlify.app)
+
+> Opens in a new tab
 
 ---
 
