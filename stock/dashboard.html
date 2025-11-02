@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kite Mobile - Mobile-first Zerodha Kite Clone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--accent:#ff6b35;--bg:#f7f8fb;--card:#fff;--muted:#8b9499;--success:#2fa67a;--danger:#e74c3c}
+    [data-theme='dark']{--bg:#0f1720;--card:#0b1220;--muted:#9aa3ab;color:#e6eef8}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);margin:0;color:#111;-webkit-font-smoothing:antialiased}
+
+    /* mobile-first layout */
+    .app{display:flex;flex-direction:column;min-height:100vh}
+    header.mobile-top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border-bottom:1px solid rgba(0,0,0,0.04)}
+    .logo{display:flex;gap:8px;align-items:center}
+    .logo .mark{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#ff8a5b);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:transparent;border:1px solid rgba(0,0,0,0.06);font-weight:600}
+
+    main{flex:1;padding:12px}
+    .search-row{display:flex;gap:8px;margin-bottom:10px}
+    .search-row input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:transparent}
+    .watchlist{background:var(--card);padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,0.04);margin-bottom:12px}
+    .watch-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.02);margin-bottom:8px}
+    .watch-item .meta{font-size:12px;color:var(--muted)}
+    .price-up{color:var(--success)}.price-down{color:var(--danger)}
+
+    .card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.04);margin-bottom:12px}
+    .row{display:flex;align-items:center;justify-content:space-between}
+    .big{font-weight:700;font-size:24px}
+
+    /* candlestick/chart area */
+    .chart-wrap{height:220px}
+
+    /* bottom buy/sell sheet */
+    .sheet{position:fixed;left:0;right:0;bottom:72px;background:var(--card);border-top-left-radius:14px;border-top-right-radius:14px;box-shadow:0 -8px 30px rgba(2,6,23,0.08);padding:12px;transform:translateY(120%);transition:transform .28s cubic-bezier(.2,.9,.3,1)}
+    .sheet.open{transform:translateY(0%)}
+    .sheet .handle{width:40px;height:4px;background:rgba(0,0,0,0.08);border-radius:999px;margin:8px auto}
+    .sheet .controls{display:flex;gap:8px;margin-top:8px}
+    .btn{flex:1;padding:12px;border-radius:10px;border:none;font-weight:700}
+    .btn.buy{background:linear-gradient(180deg,var(--accent),#ff8a5b);color:white}
+    .btn.sell{background:transparent;border:1px solid rgba(0,0,0,0.08)}
+
+    /* bottom navigation */
+    nav.bottom-nav{height:56px;background:var(--card);display:flex;align-items:center;justify-content:space-around;border-top:1px solid rgba(0,0,0,0.04);position:fixed;left:0;right:0;bottom:0}
+    nav.bottom-nav button{background:transparent;border:none;display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--muted)}
+    nav.bottom-nav button.active{color:var(--accent);font-weight:700}
+
+    /* login screen */
+    .login{display:flex;flex-direction:column;gap:12px;min-height:60vh;align-items:center;justify-content:center;padding:24px}
+    .login input{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06)}
+    .login .primary{background:var(--accent);color:#fff;border:none;padding:12px;border-radius:10px;width:100%;font-weight:700}
+
+    @media(min-width:900px){
+      main{max-width:900px;margin:0 auto}
+      nav.bottom-nav{display:none}
+      .sheet{bottom:18px}
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="app">
+    <header class="mobile-top">
+      <div class="logo"><div class="mark">K</div><div><div style="font-weight:700">Kite</div><div style="font-size:12px;color:var(--muted)">Hi, Guest</div></div></div>
+      <div class="top-actions">
+        <button class="pill" id="themeToggle">Dark</button>
+        <button class="pill" id="loginBtn">Login</button>
+      </div>
+    </header>
+
+    <main id="appMain">
+      <!-- Login screen (hidden when logged in) -->
+      <div id="loginScreen" class="login" style="display:none">
+        <h2>Welcome back</h2>
+        <input id="userInput" placeholder="Enter name" />
+        <input id="pinInput" placeholder="PIN (demo)" type="password" />
+        <button id="doLogin" class="primary">Sign in</button>
+        <small style="color:var(--muted)">This demo saves name locally only.</small>
+      </div>
+
+      <!-- Main mobile content -->
+      <div id="mobileView">
+        <div class="search-row">
+          <input id="q" placeholder="Search symbol or company" />
+          <button class="pill" id="addWatch">Add</button>
+        </div>
+
+        <div class="watchlist card" id="watchlist">
+          <!-- items injected here -->
+        </div>
+
+        <div class="card row" style="align-items:center;margin-bottom:10px">
+          <div>
+            <div style="font-size:12px;color:var(--muted)">Available margin</div>
+            <div class="big" id="available">₹0.00</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--muted)">Used margin</div>
+            <div class="big">0.00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700">Live Price</div>
+              <div class="meta" id="liveSymbol">—</div>
+            </div>
+            <div style="text-align:right">
+              <div id="livePrice" style="font-weight:800;font-size:20px">₹0.00</div>
+              <div id="liveChange" class="meta">—</div>
+            </div>
+          </div>
+          <div class="chart-wrap" style="margin-top:8px">
+            <canvas id="priceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buy / Sell sheet -->
+      <div class="sheet" id="orderSheet">
+        <div class="handle"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700" id="sheetSym">—</div>
+            <div class="meta" id="sheetName">Select a symbol to trade</div>
+          </div>
+          <div style="text-align:right">
+            <div id="sheetPrice" style="font-weight:800">₹0.00</div>
+            <div class="meta" id="sheetChange">—</div>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+        <div class="controls">
+          <button class="btn buy" id="buyBtn">Buy</button>
+          <button class="btn sell" id="sellBtn">Sell</button>
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="active" data-tab="dashboard">Dashboard</button>
+      <button data-tab="watch">Watchlist</button>
+      <button data-tab="orders">Orders</button>
+      <button data-tab="holdings" id="holdBtn">Holdings</button>
+      <button data-tab="funds">Funds</button>
+    </nav>
+  </div>
+
+  <script>
+    // ✅ Redirect to holdings.html when pressing Holdings button
+    document.getElementById("holdBtn").addEventListener("click", () => {
+      window.location.href = "holdings.html";
+    });
+
+    // ---- Existing JS remains unchanged ---- //
+
+    const STATE_KEY = 'kite_mobile_state_v1'
+    const sample = ['INFY','TCS','HDFCBANK','ONGC','HINDUNILVR','GOLDBEES']
+
+    let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}')
+    if(!state.watch) state.watch = sample.map(s=>({sym:s,price:randomBase(),change:0}))
+    if(!state.user) state.user = null
+    localStorage.setItem(STATE_KEY, JSON.stringify(state))
+
+    const watchEl = document.getElementById('watchlist')
+    const q = document.getElementById('q')
+    const addWatch = document.getElementById('addWatch')
+    const availableEl = document.getElementById('available')
+    const loginBtn = document.getElementById('loginBtn')
+    const loginScreen = document.getElementById('loginScreen')
+    const mobileView = document.getElementById('mobileView')
+    const doLogin = document.getElementById('doLogin')
+    const userInput = document.getElementById('userInput')
+    const pinInput = document.getElementById('pinInput')
+
+    const ctx = document.getElementById('priceChart').getContext('2d')
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {labels:[],datasets:[{label:'Price',data:[],pointRadius:0,fill:true,tension:0.25}]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{display:false},y:{display:true}},plugins:{legend:{display:false}}}
+    })
+
+    function save(){localStorage.setItem(STATE_KEY,JSON.stringify(state))}
+    function randomBase(){return +(Math.random()*3000 + 100).toFixed(2)}
+
+    function renderWatch(){
+      watchEl.innerHTML = ''
+      state.watch.forEach((it,idx)=>{
+        const div = document.createElement('div'); div.className='watch-item'
+        div.innerHTML = `<div><div style=\"font-weight:700\">${it.sym}<span class=\"meta\"> &nbsp;</span></div><div class=\"meta\">${it.change.toFixed(2)}%</div></div><div style=\"text-align:right\"><div class=\"price ${it.change>=0? 'price-up':'price-down'}\">₹${it.price.toFixed(2)}</div><div style=\"margin-top:6px;display:flex;gap:6px;justify-content:flex-end\"><button data-idx=\"${idx}\" class=\"pill openSheet\">Trade</button><button data-idx=\"${idx}\" class=\"pill remove\">Remove</button></div></div>`
+        watchEl.appendChild(div)
+      })
+      document.querySelectorAll('.remove').forEach(b=>b.onclick=e=>{const i=+e.target.dataset.idx;state.watch.splice(i,1);save();renderWatch()})
+      document.querySelectorAll('.openSheet').forEach(b=>b.onclick=e=>{const i=+e.target.dataset.idx;openSheet(state.watch[i])})
+    }
+
+    addWatch.onclick = ()=>{
+      const s = (q.value||'').trim().toUpperCase()
+      if(!s) return alert('Enter symbol')
+      state.watch.unshift({sym:s,price:randomBase(),change:+(Math.random()*2-1).toFixed(2)})
+      save(); renderWatch(); q.value=''
+    }
+
+    setInterval(()=>{
+      if(!state.watch.length) return
+      state.watch.forEach(w=>{const delta=(Math.random()*2-1); w.price = +(w.price*(1+delta/100)).toFixed(2); w.change = +((Math.random()*2-1)).toFixed(2)})
+      renderWatch()
+      const sel = state.watch[0]
+      if(sel){updateLive(sel)}
+    },1000)
+
+    function updateLive(sym){
+      document.getElementById('liveSymbol').textContent = sym.sym
+      document.getElementById('livePrice').textContent = '₹'+sym.price.toFixed(2)
+      const ch= sym.change
+      const liveChange = document.getElementById('liveChange')
+      liveChange.textContent = (ch>=0?'+':'')+ch.toFixed(2)+'%'
+      liveChange.className = ch>=0? 'price-up':'price-down'
+
+      const now = new Date().toLocaleTimeString()
+      chart.data.labels.push(now)
+      chart.data.datasets[0].data.push(sym.price)
+      if(chart.data.labels.length>30){chart.data.labels.shift(); chart.data.datasets[0].data.shift()}
+      chart.update('none')
+
+      document.getElementById('sheetSym').textContent = sym.sym
+      document.getElementById('sheetPrice').textContent = '₹'+sym.price.toFixed(2)
+      document.getElementById('sheetChange').textContent = (sym.change>=0?'+':'')+sym.change.toFixed(2)+'%'
+    }
+
+    const sheet = document.getElementById('orderSheet')
+    function openSheet(item){ sheet.classList.add('open'); document.body.style.paddingBottom='160px'; document.getElementById('sheetName').textContent = item.sym + ' • Mock instrument'; }
+    function closeSheet(){ sheet.classList.remove('open'); document.body.style.paddingBottom='0'; }
+    document.getElementById('buyBtn').onclick = ()=>{ alert('Mock BUY order placed for '+document.getElementById('sheetSym').textContent); closeSheet() }
+    document.getElementById('sellBtn').onclick = ()=>{ alert('Mock SELL order placed for '+document.getElementById('sheetSym').textContent); closeSheet() }
+
+    // bottom nav tabs (left unchanged except holdings)
+    document.querySelectorAll('nav.bottom-nav button').forEach(btn=>btn.onclick=e=>{
+      document.querySelectorAll('nav.bottom-nav button').forEach(b=>b.classList.remove('active'))
+      e.currentTarget.classList.add('active')
+      const tab=e.currentTarget.dataset.tab
+      if(tab==='watch'){ alert('Watchlist tab (demo)') }
+    })
+
+    const themeToggle = document.getElementById('themeToggle')
+    themeToggle.onclick = ()=>{
+      const cur = document.body.getAttribute('data-theme')
+      if(cur==='dark'){document.body.setAttribute('data-theme','light'); themeToggle.textContent='Dark'} else {document.body.setAttribute('data-theme','dark'); themeToggle.textContent='Light'}
+    }
+
+    function showLogin(show){ loginScreen.style.display = show? 'flex':'none'; mobileView.style.display = show? 'none':'block' }
+    loginBtn.onclick = ()=>{ showLogin(true) }
+    doLogin.onclick = ()=>{
+      const name = userInput.value.trim()||'Trader'
+      state.user = {name}; save(); loginBtn.textContent = name; showLogin(false)
+      document.querySelector('.logo div:nth-child(2) div:nth-child(2)').textContent = 'Hi, '+name
+    }
+
+    function init(){ renderWatch(); if(state.user){loginBtn.textContent = state.user.name; document.querySelector('.logo div:nth-child(2) div:nth-child(2)').textContent = 'Hi, '+state.user.name} else {showLogin(false)} }
+    init()
+
+    watchEl.addEventListener('click', (e)=>{
+      const but = e.target.closest('.watch-item')
+      if(but){ const idx = Array.from(watchEl.children).indexOf(but); if(idx>=0) openSheet(state.watch[idx]) }
+    })
+
+    document.addEventListener('click', (e)=>{ if(!e.target.closest('.sheet') && !e.target.closest('.openSheet')) closeSheet() })
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kite — Profile</title>
+<style>
+  /* System UI fonts (Zerodha-like) */
+  :root{
+    --kite:#0b5ed7;
+    --muted:#6b7680;
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --border: #e9eef6;
+    --success:#16a34a;
+    --danger:#e11d48;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:var(--bg); color:#071022; -webkit-font-smoothing:antialiased}
+  /* Page container */
+  .wrap{max-width:980px;margin:18px auto;padding:12px}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .back-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+  .title{font-size:18px;font-weight:800}
+  .sub{font-size:13px;color:var(--muted)}
+  /* header card */
+  .header-card{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;gap:16px;align-items:center;box-shadow:0 8px 30px rgba(8,12,24,0.04)}
+  .avatar{width:84px;height:84px;border-radius:12px;background:linear-gradient(180deg,var(--kite),#073b9a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:28px}
+  .user-meta{flex:1}
+  .user-meta .name{font-weight:800;font-size:18px}
+  .user-meta .uid{font-weight:700;color:var(--muted);font-size:13px;margin-top:4px}
+  .actions{display:flex;gap:8px;align-items:center}
+  .btn{padding:9px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--kite)}
+  .btn.primary{background:var(--kite);color:#fff}
+  /* grid layout */
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+  @media(min-width:900px){ .grid{grid-template-columns: 1fr 360px} }
+
+  /* cards */
+  .card{background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--border)}
+  .card h3{margin:0;font-size:14px;font-weight:800}
+  .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .field{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .field label{font-size:13px;color:var(--muted)}
+  .field input, .field select, .field textarea{
+    padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;font-size:14px;outline:none
+  }
+  .muted{color:var(--muted);font-size:13px}
+  .small{font-size:13px;color:var(--muted)}
+  .status{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;font-weight:700}
+  .status.verified{background:rgba(22,163,74,0.08);color:var(--success);border:1px solid rgba(22,163,74,0.08)}
+  .status.unverified{background:rgba(225,29,72,0.06);color:var(--danger);border:1px solid rgba(225,29,72,0.06)}
+
+  /* list items in right column */
+  .info-list{display:flex;flex-direction:column;gap:10px}
+  .info-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;border:1px solid var(--border);background:#fff}
+  .info-item .left{display:flex;flex-direction:column}
+  .muted-sm{font-size:13px;color:var(--muted)}
+  .value-strong{font-weight:800}
+
+  /* separator */
+  .sep{height:12px}
+
+  /* footer actions */
+  .footer-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .link{background:transparent;border:none;color:var(--kite);font-weight:700;cursor:pointer}
+
+  /* small helpers */
+  .inline{display:inline-flex;gap:8px;align-items:center}
+  .edit-mode{border:1px dashed rgba(11,94,215,0.12);padding:8px;border-radius:10px}
+</style>
+</head>
+<body>
+  <div class="wrap" role="main">
+
+    <!-- top -->
+    <div class="top">
+      <button class="back-btn" id="backBtn" aria-label="Back to dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="transform:translateY(1px)"><path d="M15 18l-6-6 6-6" stroke="#071022" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="small">Back</span>
+      </button>
+      <div style="flex:1">
+        <div class="title">Profile</div>
+        <div class="sub">Manage your account & settings</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" id="helpBtn">Help</button>
+        <button class="btn" id="logoutBtn" style="background:#fff;border:1px solid var(--border)">Logout</button>
+      </div>
+    </div>
+
+    <!-- header card -->
+    <div class="header-card" role="region" aria-label="Profile summary">
+      <div class="avatar" id="avatar">MH</div>
+      <div class="user-meta">
+        <div class="name" id="userName">Mahipal Choudhary</div>
+        <div class="uid" id="userId">KHH056 • Client ID: ZH123456</div>
+        <div style="height:6px"></div>
+        <div class="inline">
+          <div class="status verified" id="kycStatus"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> KYC Verified</div>
+          <div class="small muted-sm" style="margin-left:8px">Joined Jan 2023</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="editProfileBtn">Edit</button>
+        <button class="btn primary" id="fundsBtn">Add Funds</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="grid">
+      <!-- left column: editable profile sections -->
+      <div>
+        <!-- contact & personal -->
+        <div class="card" id="contactCard">
+          <h3>Contact & Personal</h3>
+          <div class="field">
+            <label>Full name</label>
+            <input id="inpName" value="Mahipal चौधरी" readonly />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="inpEmail" value="mahipal@example.com" readonly />
+          </div>
+          <div class="field">
+            <label>Mobile</label>
+            <input id="inpMobile" value="+91 98765 43210" readonly />
+          </div>
+          <div class="field">
+            <label>PAN</label>
+            <input id="inpPan" value="ABCDE1234F" readonly />
+          </div>
+          <div class="field">
+            <label>Date of birth</label>
+            <input id="inpDob" value="1995-06-11" type="date" readonly />
+          </div>
+          <div class="field">
+            <label>Address</label>
+            <textarea id="inpAddr" rows="3" readonly>123, Example Street, City, State - 123456</textarea>
+          </div>
+
+          <div class="footer-actions">
+            <button class="btn ghost" id="cancelContact" style="display:none">Cancel</button>
+            <button class="btn primary" id="saveContact" style="display:none">Save</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <!-- bank & nominee -->
+        <div class="card" id="bankCard">
+          <h3>Bank & Nominee</h3>
+
+          <div class="field" style="display:flex;gap:8px">
+            <div style="flex:1">
+              <label>Bank name</label>
+              <input id="bankName" value="State Bank of India" readonly />
+            </div>
+            <div style="width:140px">
+              <label>Account</label>
+              <input id="bankAcc" value="XXXXXX1234" readonly />
+            </div>
+          </div>
+
+          <div class="field" style="display:flex;gap:8px">
+            <div style="flex:1">
+              <label>IFSC</label>
+              <input id="bankIfsc" value="SBIN0001234" readonly />
+            </div>
+            <div style="width:140px">
+              <label>Nominee</label>
+              <input id="nominee" value="Suresh Kumar" readonly />
+            </div>
+          </div>
+
+          <div class="footer-actions">
+            <button class="btn ghost" id="editBank">Edit</button>
+            <button class="btn primary" id="saveBank" style="display:none">Save</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <!-- security -->
+        <div class="card" id="securityCard">
+          <h3>Security & Preferences</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+            <div class="inline">
+              <div style="flex:1">
+                <div class="small">App lock / PIN</div>
+                <div class="muted-sm">Change your login PIN or enable app lock</div>
+              </div>
+              <div><button class="btn ghost" id="changePin">Change</button></div>
+            </div>
+
+            <div class="inline">
+              <div style="flex:1">
+                <div class="small">Two-Factor Authentication</div>
+                <div class="muted-sm">2FA via SMS or email</div>
+              </div>
+              <div><button class="btn ghost" id="manage2fa">Manage</button></div>
+            </div>
+
+            <div class="inline">
+              <div style="flex:1">
+                <div class="small">Privacy</div>
+                <div class="muted-sm">Profile visibility & data sharing</div>
+              </div>
+              <div><button class="btn ghost" id="privacyBtn">Settings</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right column: summary cards -->
+      <aside>
+        <div class="info-list">
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">Available funds</div><div class="value-strong">₹12,348</div></div>
+            <div><button class="btn ghost" id="addFundsSmall">Add</button></div>
+          </div>
+
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">DP / Demat ID</div><div class="value-strong">IN304956123456</div></div>
+            <div><div class="small muted-sm">Active</div></div>
+          </div>
+
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">Trading segments</div><div class="value-strong">Equity | F&O</div></div>
+            <div><div class="small muted-sm">Verified</div></div>
+          </div>
+
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">Linked devices</div><div class="value-strong">2 devices</div></div>
+            <div><button class="btn ghost" id="manageDevices">Manage</button></div>
+          </div>
+
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">Support</div><div class="value-strong">Open ticket</div></div>
+            <div><button class="btn ghost" id="openTicket">Open</button></div>
+          </div>
+
+          <div class="info-item">
+            <div class="left"><div class="muted-sm">Refer & earn</div><div class="value-strong">Invite friends</div></div>
+            <div><button class="btn primary" id="invite">Invite</button></div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h3>Account status</h3>
+          <div class="muted-sm" style="margin-top:8px">KYC: <span style="font-weight:800">Completed</span></div>
+          <div class="muted-sm" style="margin-top:6px">Bank linked: <span style="font-weight:800">Yes</span></div>
+          <div class="muted-sm" style="margin-top:6px">PAN verified: <span style="font-weight:800">Yes</span></div>
+        </div>
+      </aside>
+    </div>
+
+  </div>
+
+<script>
+  // Simple interactive behaviour (pure front-end).
+  // Back button -> Home Dashboard (zerodha.html)
+  document.getElementById('backBtn').addEventListener('click', ()=> {
+    window.location.href = 'dashboard.html';
+  });
+
+  // Logout clears demo state and goes to login page
+  document.getElementById('logoutBtn').addEventListener('click', ()=> {
+    if(confirm('Logout from demo account?')) {
+      localStorage.removeItem('kite_demo_logged');
+      // redirect to login page (login.html)
+      window.location.href = 'login.html';
+    }
+  });
+
+  // Edit profile interaction (Contact & Personal)
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const inputs = ['inpName','inpEmail','inpMobile','inpPan','inpDob','inpAddr'];
+  const cancelContact = document.getElementById('cancelContact');
+  const saveContact = document.getElementById('saveContact');
+
+  editProfileBtn.addEventListener('click', ()=> {
+    // toggle edit mode
+    const isEditing = editProfileBtn.dataset.editing === '1';
+    if(!isEditing) {
+      editProfileBtn.textContent = 'Editing';
+      editProfileBtn.classList.add('ghost');
+      editProfileBtn.dataset.editing = '1';
+      // make inputs editable & show save/cancel
+      inputs.forEach(id => document.getElementById(id).removeAttribute('readonly'));
+      cancelContact.style.display = 'inline-block';
+      saveContact.style.display = 'inline-block';
+    } else {
+      // shouldn't happen: user should press Save or Cancel
+    }
+  });
+
+  cancelContact.addEventListener('click', ()=> {
+    // revert changes (for demo, reload from initial values stored in data-* or reset)
+    // Here we'll just reload the page to revert (since demo is static)
+    if(confirm('Discard changes?')) window.location.reload();
+  });
+
+  saveContact.addEventListener('click', ()=> {
+    // Save to localStorage (demo)
+    const profile = {
+      name: document.getElementById('inpName').value,
+      email: document.getElementById('inpEmail').value,
+      mobile: document.getElementById('inpMobile').value,
+      pan: document.getElementById('inpPan').value,
+      dob: document.getElementById('inpDob').value,
+      address: document.getElementById('inpAddr').value
+    };
+    localStorage.setItem('kite_profile', JSON.stringify(profile));
+    alert('Profile saved (demo).');
+    // exit edit mode
+    editProfileBtn.textContent = 'Edit';
+    editProfileBtn.dataset.editing = '0';
+    cancelContact.style.display = 'none';
+    saveContact.style.display = 'none';
+    inputs.forEach(id => document.getElementById(id).setAttribute('readonly',''));
+  });
+
+  // Bank edit
+  const editBankBtn = document.getElementById('editBank');
+  const saveBankBtn = document.getElementById('saveBank');
+  editBankBtn.addEventListener('click', ()=> {
+    editBankBtn.style.display='none';
+    saveBankBtn.style.display='inline-block';
+    ['bankName','bankAcc','bankIfsc','nominee'].forEach(id => document.getElementById(id).removeAttribute('readonly'));
+  });
+  saveBankBtn.addEventListener('click', ()=> {
+    alert('Bank details saved (demo).');
+    editBankBtn.style.display='inline-block';
+    saveBankBtn.style.display='none';
+    ['bankName','bankAcc','bankIfsc','nominee'].forEach(id => document.getElementById(id).setAttribute('readonly',''));
+  });
+
+  // small helpers
+  document.getElementById('helpBtn').addEventListener('click', ()=> alert('Help: This is a demo profile. For real support contact support@kite.example.'));
+  document.getElementById('fundsBtn').addEventListener('click', ()=> alert('Top-up flow (demo).'));
+  document.getElementById('addFundsSmall').addEventListener('click', ()=> alert('Add funds (demo).'));
+  document.getElementById('manageDevices').addEventListener('click', ()=> alert('Manage linked devices (demo).'));
+  document.getElementById('openTicket').addEventListener('click', ()=> alert('Open support ticket (demo).'));
+  document.getElementById('invite').addEventListener('click', ()=> alert('Invite friends (demo).'));
+  document.getElementById('changePin').addEventListener('click', ()=> alert('Change PIN (demo).'));
+  document.getElementById('manage2fa').addEventListener('click', ()=> alert('Manage 2FA (demo).'));
+  document.getElementById('privacyBtn').addEventListener('click', ()=> alert('Privacy settings (demo).'));
+
+  // Load saved profile values if exist
+  (function loadProfile(){
+    const p = JSON.parse(localStorage.getItem('kite_profile') || 'null');
+    if(p){
+      document.getElementById('inpName').value = p.name || document.getElementById('inpName').value;
+      document.getElementById('inpEmail').value = p.email || document.getElementById('inpEmail').value;
+      document.getElementById('inpMobile').value = p.mobile || document.getElementById('inpMobile').value;
+      document.getElementById('inpPan').value = p.pan || document.getElementById('inpPan').value;
+      document.getElementById('inpDob').value = p.dob || document.getElementById('inpDob').value;
+      document.getElementById('inpAddr').value = p.address || document.getElementById('inpAddr').value;
+    }
+  })();
+</script>
+</body>
+</html>
